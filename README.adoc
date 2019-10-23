@@ -37,7 +37,11 @@ git push origin branch_name # push changes to remote repository
 
 There is a separate folder for each homework. New folders will be created for you as new homeworks are assigned.
 
-Similar to each laboratory create a **special branch** for each homework (e.g. homework01) and work in this branch. After the homework is finished, commit and push your homework branch to faculty Gitlab.
+Each homework has a set of attached unit tests. You can run these tests locally by executing command `pytest` inside of the homework folder. The pytest package has been also added to the conda environment, so run `conda env update` if you don't have the executable installed.
+
+Similar to each laboratory create a **special branch** for each homework and name it `homeworkXX`, where XX is zero padded number of the homework (e.g. homework01). The branch naming is important because of automated testing on Gitlab. If you don't name the branch correctly, tests will not be executed by the CI and the homework solution will not be accepted.
+
+After the homework is finished, commit and push your homework branch to faculty Gitlab. 
 
 On Gitlab, create a Merge request from your branch to master: 
 
