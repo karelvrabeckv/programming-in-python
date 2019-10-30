@@ -1,7 +1,7 @@
 from collections import namedtuple
 import pytest
 
-import space_motion as space_motion
+import space_motion
 
 SpaceObject = namedtuple('SpaceObject', 'name mass x y vx vy color')
 Force = namedtuple('Force', 'fx fy')
@@ -79,14 +79,15 @@ def test_simulate_motion2():
     assert abs(res2['earth'][1] - 133038837) <= 1
     assert abs(res2['sun'][1] - 149499999600) <= 1
     
-@pytest.mark.xfail(raises=StopIteration)
+
 def test_simulate_motion3():
     sun = SpaceObject(name='sun', mass=1.0*m_sun, x=0.0, y=au, vx=0.0, vy=0, color='y')
     earth = SpaceObject(name='earth', mass=1.0*m_earth, x=0.0, y=0.0, vx=0.0, vy=0.0, color='b')
     
     motion = space_motion.simulate_motion(day, 1, earth, sun)
     next(motion)
-    next(motion) # end of generator
+    with pytest.raises(StopIteration, message='Expecting StopIteration'):
+        next(motion) # end of generator
     
 def test_logging1(capsys):
     log = space_motion.logging('ms')
