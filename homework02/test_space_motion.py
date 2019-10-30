@@ -1,7 +1,7 @@
 from collections import namedtuple
 import pytest
 
-import space_motion_sln as space_motion
+import space_motion as space_motion
 
 SpaceObject = namedtuple('SpaceObject', 'name mass x y vx vy color')
 Force = namedtuple('Force', 'fx fy')
