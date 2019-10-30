@@ -98,7 +98,7 @@ def test_logging1(capsys):
     target = 'update_space_object - 12 - '
     assert captured.out[:len(target)] == target
 
-def test_logging1(capsys):
+def test_logging2(capsys):
     log = space_motion.logging('ms')
     decored = log(space_motion.update_space_object)
     kilo = SpaceObject(name='kilo', mass=1.0, x=0.0, y=0.0, vx=0, vy=0, color='black')
