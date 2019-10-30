@@ -11,5 +11,13 @@ test-homework01:
   only:
     - homework01
 
+test-homework02:
+  stage: test
+  script:
+    - cd homework02
+    - pytest
+  only:
+    - homework02
+
 before_script:
   - pip install pytest      
