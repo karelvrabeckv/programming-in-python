@@ -22,26 +22,86 @@
 # 
 # For more details about Game of Life, see Wikipedia - https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 
-
+# Updates the state of cell automata.
 def update(alive, size, iter_n):
-   # TODO: Implement update rules 
-   # Should return set of coordinates of alive cells
-   # after iter_n iterations.
-   return set()
 
+    # Sets of previous and next generations.
+    prev_gen = alive.copy()
+    next_gen = set()
+
+    # Iterates through states.
+    for _ in range(iter_n):
+    
+        next_gen.clear()
+        
+        # Browses the grid.
+        for x in range(size[0]):
+            for y in range(size[1]):
+            
+                neighbours = 0
+                
+                # Explores neighbours.
+                for i in range(x-1, x+2):
+                    for j in range(y-1, y+2):
+                    
+                        # Edges and avoiding the current cell.
+                        if (i < 0 or i >= size[0] or
+                            j < 0 or j >= size[1] or
+                            (i == x and j == y)):
+                            continue
+                        
+                        # The neighbour is living.
+                        if (i, j) in prev_gen:
+                            neighbours += 1
+                        
+                # The case of living cell.
+                if (x, y) in prev_gen:
+                    
+                    # The living cell dies.
+                    if neighbours < 2 or neighbours > 3:
+                        pass
+                    
+                    # The living cell survives.
+                    if neighbours == 2 or neighbours == 3:
+                        next_gen.add((x, y));
+                
+                # The case of dead cell.
+                if (x, y) not in prev_gen:
+                
+                    # The dead cell comes back to life.
+                    if neighbours == 3:
+                        next_gen.add((x, y))
+        
+        # Generations are shifted.
+        prev_gen = next_gen.copy()
+    
+    return next_gen
+
+# Draws the state of cell automata.
 def draw(alive, size):
-    """
-    alive - set of cell coordinates marked as alive, can be empty
-    size - size of simulation grid as  tuple - ( 
 
-    output - string showing the board state with alive cells marked with X
-    """
-    # TODO: implement board drawing logic and return it as output
-    # Don't call print in this method, just return board string as output.
-    # Example of 3x3 board with 1 alive cell at coordinates (0, 2):
-    # +---+ 
-    # |  X|
-    # |   |
-    # |   |
-    # +---+ 
-    return '<board drawing>'
+    # The upper row
+    str_out = "+"
+    for _ in range(size[1]):
+        str_out += "-"
+    str_out += "+\n"
+    
+    # The grid
+    for rows in range(size[0]):
+        str_out += "|"
+        
+        for cols in range(size[1]):
+            if (rows, cols) in alive:
+                str_out += "X"
+            else:
+                str_out += " "
+                
+        str_out += "|\n"
+
+    # The lower row
+    str_out += "+"
+    for _ in range(size[1]):
+        str_out += "-"
+    str_out += "+"
+
+    return str_out
