@@ -63,7 +63,7 @@ def update_motion
     
 @logging()
 def simulate_motion
-    #generator that in every iteration yields dictionary with name of the objects as a key and named tuple SpaceObject as a value
+    #generator that in every iteration yields dictionary with name of the objects as a key and tuple of coordinates (x first, y second) as values
     #input size of timestep, number of timesteps (integer), space objects (any number of them)
     
     

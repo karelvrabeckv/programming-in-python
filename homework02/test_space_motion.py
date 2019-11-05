@@ -55,10 +55,12 @@ def test_update_space_object3():
     #force working against the moving object, should stop it
     kilo = SpaceObject(name='kilo', mass=1.0, x=0.0, y=0.0, vx=10.0, vy=0.0, color='black')
     force = Force(fx=-10.0, fy=0.0)
-    target = SpaceObject(name='kilo', mass=1.0, x=0.0, y=0.0, vx=0.0, vy=0.0, color='black')
-    assert target == space_motion.update_space_object(kilo, force=force, timestep=1)
+    target1 = SpaceObject(name='kilo', mass=1.0, x=0.0, y=0.0, vx=0.0, vy=0.0, color='black')
+    target2 = SpaceObject(name='kilo', mass=1.0, x=5.0, y=0.0, vx=0.0, vy=0.0, color='black')
+    result = space_motion.update_space_object(kilo, force=force, timestep=1)
+    assert (target1 == result) or (target2 == result)
 
-#TODO
+
 def test_simulate_motion1():
     sun = SpaceObject(name='sun', mass=1.0*m_sun, x=0.0, y=au, vx=0.0, vy=0, color='y')
     earth = SpaceObject(name='earth', mass=1.0*m_earth, x=0.0, y=0.0, vx=0.0, vy=0.0, color='b')
@@ -86,8 +88,9 @@ def test_simulate_motion3():
     
     motion = space_motion.simulate_motion(day, 1, earth, sun)
     next(motion)
-    with pytest.raises(StopIteration, message='Expecting StopIteration'):
+    with pytest.raises(StopIteration):
         next(motion) # end of generator
+        #pytest.fail('Expecting StopIteration')
     
 def test_logging1(capsys):
     log = space_motion.logging('ms')

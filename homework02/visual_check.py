@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import rc
 
-import space_motion_sln as space_motion 
+import space_motion
 
 def visualize_results(simulation, timestamp, xlim, ylim, *space_objects):
     colors = [o.color for o in space_objects]
