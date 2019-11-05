@@ -90,7 +90,7 @@ def test_simulate_motion3():
     next(motion)
     with pytest.raises(StopIteration):
         next(motion) # end of generator
-        #pytest.fail('Expecting StopIteration')
+        pytest.fail('Expecting StopIteration')
     
 def test_logging1(capsys):
     log = space_motion.logging('ms')
