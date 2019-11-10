@@ -1,4 +1,4 @@
-"""
+﻿r"""
 Simulate the stars/planets/satellites motion in 2D space. Every two objects in the universe are attracted by the gravitational force
 
 $$\vec{F_{ij}} = \frac{G m_i m_j}{r_{ij}^2} \frac{\vec{r_{ij}}}{\|r_{ij}\|}.$$ 
@@ -16,55 +16,134 @@ Write a decorator that measures number of calling of each function and their run
 Below is description of all steps for calculating the update. If you are unsure of precise interface see test script for examples of calling the function.
 """
 
-import time # measuring time
+from collections import namedtuple
+import time, math
 
-#Define universal gravitation constant
-G=6.67408e-11 #N-m2/kg2
+G = 6.67408e-11
 SpaceObject = namedtuple('SpaceObject', 'name mass x y vx vy color')
 Force = namedtuple('Force', 'fx fy')
 
+# ========================================
+
+def logging(unit='ms'): # decorator
+    def logger(fn):
+        def wrapper(*args, **kwargs):
+            wrapper.calls += 1
+            
+            start = time.time() # starts measuring the time
+            result = fn(*args, **kwargs)
+            end = time.time() # ends measuring the time
+            
+            exec_time = end - start # calculates the execution time
+            
+            if (unit == 's'):
+                exec_time = exec_time / 1000
+            else: # possible to extend for other units
+                pass
+            
+            print(fn.__name__, "-", wrapper.calls, "-", exec_time, unit)
+            
+            return result
+            
+        wrapper.calls = 0 # the number of function calls
+        
+        return wrapper
+        
+    return logger
+
+# ========================================
+
 @logging(unit='ms')
-def calculate_force
-    #input: one of the space objects (indexed as i in below formulas), other space objects (indexed as j, may be any number of them)
-    #returns named tuple (see above) that represents x and y components of the gravitational force
-    #calculate force (vector) for each pair (space_object, other_space_object):
-    #|F_ij| = G*m_i*m_j/distance^2
-    #F_x = |F_ij| * (other_object.x-space_object.x)/distance
-    #analogous for F_y
-    #for each coordinate (x, y) it sums force from all other space objects
-    return force
+def calculate_force(specific_object, *objects):
+    
+    # Final gravitational force and its components
+    f_ij = f_x = f_y = 0
+    
+    # Calculates the sum of gravitational forces and its components
+    for object in objects:
+    
+        # Excludes the specific object
+        if (object is specific_object):
+            continue
+            
+        # Calculates the distance between the objects
+        distance = math.sqrt(
+            (object.x - specific_object.x)**2 + (object.y - specific_object.y)**2
+        )
+        
+        # Calculates the gravitational force
+        f_ij += G * specific_object.mass * object.mass / distance**2
+        
+        # Calculates the components
+        f_x += abs(f_ij) * (object.x - specific_object.x) / distance
+        f_y += abs(f_ij) * (object.y - specific_object.y) / distance
+    
+    return Force(f_x, f_y)
+
+# ========================================
 
 @logging(unit='s')
-def update_space_object
-    #here we update coordinates and speed of the object based on the force that acts on it
-    #input: space_object we want to update (evolve in time), force (from all other objects) that acts on it, size of timestep
-    #returns: named tuple (see above) that contains updated coordinates and speed for given space_object
-    #hint:
-    #acceleration_x = force_x/mass
-    #same for y
-    #speed_change_x = acceleration_x * timestep
-    #same for y
-    #speed_new_x = speed_old_x + speed_change_x
-    #same for y
-    #x_final = x_old + speed_new_x * timestep
+def update_space_object(specific_object, force, timestep):
     
+    # Calculates new speed
+    final_speed_x = specific_object.vx + force.fx / specific_object.mass * timestep
+    final_speed_y = specific_object.vy + force.fy / specific_object.mass * timestep
     
-    return space_object
+    # Calculates new coordinates
+    final_x = specific_object.x + final_speed_x * timestep
+    final_y = specific_object.y + final_speed_y * timestep
+    
+    return SpaceObject(
+        specific_object.name,
+        specific_object.mass,
+        final_x,
+        final_y,
+        final_speed_x,
+        final_speed_y,
+        specific_object.color
+    )
+
+# ========================================
 
 @logging(unit='ms')
-def update_motion
-    #input: timestep and space objects we want to simulate (as named tuples above)
-    #returns: list or tuple with updated objects
-    #hint:
-    #iterate over space objects, for given space object calculate_force with function above, update
-    
-    return updated_space_objects #(named tuple with x and y)
-    
-    
-@logging()
-def simulate_motion
-    #generator that in every iteration yields dictionary with name of the objects as a key and tuple of coordinates (x first, y second) as values
-    #input size of timestep, number of timesteps (integer), space objects (any number of them)
-    
-    
+def update_motion(timestep, objects):
 
+    # List of the updated space objects
+    updated_objects = list()
+    
+    # Updates all objects
+    for object in objects:
+        
+        # Calculates the gravitational force and its components
+        force = calculate_force(object, *objects)
+        
+        # Updates the object
+        updated_object = update_space_object(object, force, timestep)
+        
+        # Adds the updated object to the list
+        updated_objects.append(updated_object)
+    
+    return updated_objects
+    
+# ========================================
+
+@logging()
+def simulate_motion(timestep, num_of_timesteps, *objects):
+
+    # Dictionary of the updated space objects
+    all_objects_info = dict()
+    
+    # Copy of the space objects
+    all_objects = objects
+    
+    # Simulates the motion of the space objects
+    for _ in range(num_of_timesteps):
+    
+        # Updates the objects
+        all_objects = update_motion(timestep, all_objects)
+        
+        # Updates the dictionary
+        for object in all_objects:
+            all_objects_info[object.name] = (object.x, object.y)
+            
+        yield all_objects_info
