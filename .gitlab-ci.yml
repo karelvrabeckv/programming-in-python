@@ -20,4 +20,4 @@ test-homework02:
     - homework02
 
 before_script:
-  - pip install pytest      
+  - pip install pytest numpy     
