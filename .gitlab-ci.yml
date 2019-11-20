@@ -18,6 +18,14 @@ test-homework02:
     - pytest
   only:
     - homework02
+    
+test-homework03:
+  stage: test
+  script:
+    - cd homework03
+    - pytest
+  only:
+    - homework03
 
 before_script:
   - pip install pytest numpy     
