@@ -28,4 +28,4 @@ test-homework03:
     - homework03
 
 before_script:
-  - pip install pytest numpy     
+  - pip install pytest numpy pillow ipython
