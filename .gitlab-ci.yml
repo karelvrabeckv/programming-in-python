@@ -36,4 +36,4 @@ test-homework04:
     - homework04
 
 before_script:
-  - pip install pytest numpy pillow ipython
+  - pip install pytest numpy pillow ipython pandas
