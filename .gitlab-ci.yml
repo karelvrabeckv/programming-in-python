@@ -27,5 +27,13 @@ test-homework03:
   only:
     - homework03
 
+test-homework04:
+  stage: test
+  script:
+    - cd homework04
+    - pytest
+  only:
+    - homework04
+
 before_script:
   - pip install pytest numpy pillow ipython
