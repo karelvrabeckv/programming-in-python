@@ -1,156 +1,188 @@
-
-
-"""
-Dataset obsahuje nasledujici promenne:
- 'Age' - vek v rocich
- 'Fare' - cena jizdenky
- 'Name' - jmeno cestujiciho
- 'Parch' - # rodicu/deti daneho cloveka na palube
- 'PassengerId' - Id
- 'Pclass' - Trida, 1 = 1. trida, 2 = 2.trida, 3 = 3.trida
- 'Sex' - pohlavi
- 'SibSp' - # sourozencu/manzelu daneho cloveka na ppalube
- 'Survived' - 0 = Neprezil, 1 = Prezil
- 'Embarked' - Pristav, kde se dany clovek nalodil. C = Cherbourg, Q = Queenstown, S = Southampton
- 'Cabin' - Cislo kabiny
- 'Ticket' - Cislo tiketu
-"""
-
-
+import pandas as pd
+import numpy as np
 
 def load_dataset(train_file_path, test_file_path):
-    """
-    Napiste funkci, ktera nacte soubory se souboru zadanych parametrem a vytvori dva separatni DataFrame. Pro testovani vyuzijte data 'data/train.csv' a 'data/test.csv'
-    Ke kazdemu dataframe pridejte sloupecek pojmenovaný jako "Label", ktery bude obsahovat hodnoty "Train" pro train.csv a "Test" pro test.csv.
 
-    1. Pote slucte oba dataframy.
-    2. Z vysledneho slouceneho DataFramu odstraňte sloupce  "Ticket", "Embarked", "Cabin".
-    3. Sloučený DataDrame bude mít index od 0 do do počtu řádků.
-    4. Vratte slouceny DataDrame.
-    """
+    # Loads all important files as dataframes
+    train_df = pd.read_csv(train_file_path);
+    test_df = pd.read_csv(test_file_path);
 
-    ### Implementujte sve reseni.
+    # Adds a new 'Label' column with default 'Train/Test' values for both dataframes
+    train_df['Label'] = 'Train'
+    test_df['Label'] = 'Test'
 
-def get_missing_values(df : pd.DataFrame) -> pd.DataFrame:
-    """
-    Ze zadaneho dataframu zjistete chybejici hodnoty. Vyvorte DataFrame, ktery bude obsahovat v indexu jednotlive promenne
-    a ve prvnim sloupci bude promenna 'Total' obsahujici celkovy pocet chybejicich hodnot a ve druhem sloupci promenna 'Percent',
-    ve ktere bude procentualni vyjadreni chybejicich hodnot vuci celkovemu poctu radku v tabulce.
-    DataFrame seradte od nejvetsich po nejmensi hodnoty.
-    Vrattre DataFrame chybejicich hodnot a celkovy pocet chybejicich hodnot.
+    # Joins both dataframes
+    new_df = pd.concat([train_df, test_df], ignore_index=True, sort=False)
 
-    Priklad:
+    # Deletes 'Ticket', 'Embarked' and 'Cabin' columns
+    new_df = new_df.drop(['Ticket', 'Embarked', 'Cabin'], axis=1)
 
-               |  Total  |  Percent
-    "Column1"  |   34    |    76
-    "Column2"  |   0     |    0
+    return new_df
 
-    """
+def get_missing_values(df: pd.DataFrame) -> pd.DataFrame:
 
-    ### Implementujte sve reseni.
+    # Creates a new dictionary with all information about missing values
+    data = {
+        'Total': df.isnull().sum(),
+        'Percent': df.isnull().sum() / df.shape[0] * 100
+    }
+
+    # Creates a new dataframe with the help of the dictionary
+    new_df = pd.DataFrame(data, index=df.columns)
+
+    # Sorts the dataframe in descending order
+    new_df = new_df.sort_values(by='Total', ascending=False)
+
+    return new_df
 
 def substitute_missing_values(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Chybejici hodnoty ve sloupecku "Age" nahradte meanem hodnot z "Age".
-    Chybejici hodnoty ve sloupecku "Fare" nahradte meadianem hodnot z "Fare".
-    V jednom pripade pouzijte "loc" a ve druhem "fillna".
-    Zadany DataFrame neupravujte, ale vytvorte si kopii.
-    Vratte upraveny DataFrame.
-    """
 
+    # Copies the specified dataframe
+    new_df = df.copy()
 
-    ### Implementujte sve reseni.
+    # Replaces all missing values in the 'Age' column by the mean
+    new_df.loc[new_df['Age'].isnull(), 'Age'] = df['Age'].mean()
 
+    # Replaces all missing values in the 'Fare' column by the median
+    new_df['Fare'] = new_df['Fare'].fillna(df['Fare'].median())
 
+    return new_df
 
 def get_correlation(df: pd.DataFrame) -> float:
-    """
-    Spocitejte korelaci pro "Age" a "Fare" a vratte korelaci mezi "Age" a "Fare".
-    """
 
-    ### Implementujte sve reseni.
+    return df['Age'].corr(df['Fare'])
 
-def get_survived_per_class(df : pd.DataFrame, group_by_column_name : str) ->pd.DataFrame:
-    """
-    Spocitejte prumer z promenne "Survived" pro kazdou skupinu zadanou parametrem "group_by_column_name".
-    Hodnoty seradte od nejvetsich po mejmensi.
-    Hodnoty "Survived" zaokhroulete na 2 desetinna mista.
-    Vratte pd.DataFrame.
+def get_survived_per_class(df: pd.DataFrame, group_by_column_name: str) -> pd.DataFrame:
 
-    Priklad:
+    # Creates a new dictionary with all averages according to the groups
+    df_tmp = df.groupby(group_by_column_name)['Survived']
+    data = {'Survived': df_tmp.sum() / df_tmp.count()}
 
-    get_survived_per_class(df, "Sex")
+    # Creates a new dataframe with the help of the dictionary
+    new_df = pd.DataFrame(data)
 
-                 Survived
-    Male     |      0.32
-    Female   |      0.82
+    # Sorts the dataframe and resets indexes
+    new_df = new_df.sort_values(by='Survived', ascending=False).reset_index()
 
-    """
+    # Rounds all averages to two decimal places
+    new_df['Survived'] = new_df['Survived'].round(2)
 
-    ### Implementujte sve reseni.
+    return new_df
 
 def get_outliers(df: pd.DataFrame) -> (int, str):
-    """
-    Vyfiltrujte odlehle hodnoty (outliers) ve sloupecku "Fare" pomoci metody IRQ.
-    Tedy spocitejte rozdil 3. a 1. kvantilu, tj. IQR = Q3 - Q1.
-    Pote odfiltrujte vsechny hodnoty nesplnujici: Q1 - 1.5*IQR < "Fare" < Q3 + 1.5*IQR.
-    Namalujte box plot pro sloupec "Fare" pred a po vyfiltrovani outlieru.
-    Vratte tuple obsahujici pocet outlieru a jmeno cestujiciho pro nejvetsi outlier.
-    """
 
-    ### Implementujte sve reseni.
+    # Calculates both quantiles including IQR
+    Q1 = df['Fare'].quantile(0.25)
+    Q3 = df['Fare'].quantile(0.75)
+    IQR = Q3 - Q1
 
+    # Filters out all outliers
+    new_df = df.query('(@Q1 - 1.5*@IQR) < Fare < (@Q3 + 1.5*@IQR)')
+
+    # Draws a box plot
+    df.join(new_df, lsuffix='_before', rsuffix='_after').boxplot(
+        column=['Fare_before', 'Fare_after']
+    )
+
+    # Gets the number of outliers
+    num_of_outliers = df[
+        (df['Fare'] < (Q1 - 1.5*IQR)) | (df['Fare'] > (Q3 + 1.5*IQR))
+    ].shape[0]
+
+    # Gets the name of the biggest outlier
+    name = df.loc[df['Fare'] == df['Fare'].max(), 'Name'].values[0]
+
+    return (num_of_outliers, name)
 
 def normalise(df: pd.DataFrame, col: str) -> pd.DataFrame:
-    """
-    Naskalujte sloupec "col" zadany parametrem pro kazdou "Pclass" hodnotu z dataframu "df" zvlast.
-    Pouzijte vzorec: scaled_x_i = (x_i - min(x)) / (max(x) - min(x)), kde "x_i" prestavuje konkretni hodnotu ve sloupeci "col".
-    Vratte naskalovany dataframe.
-    """
 
-    ### Implementujte sve reseni.
+    # Copies the specified dataframe-
+    new_df = df.copy()
 
+    # Scales the 'col' column according to the 'Pclass' values
+    new_df[col] = new_df.groupby('Pclass')[col].apply(
+        lambda x: (x-min(x)) / (max(x)-min(x))
+    )
+
+    return new_df
 
 def create_new_features(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Vytvorte 3 nove promenne:
-    1. "Fare_scaled" - vytvorte z "Fare" tak, aby mela nulovy prumer a jednotkovou standartni odchylku.
-    2. "Age_log" - vytvorte z "Age" tak, aby nova promenna byla logaritmem puvodni "Age".
-    3. "Sex" - Sloupec "Sex" nahradte: "female" -> 1, "male" -> 0, kde 0 a 1 jsou integery.
 
-    Nemodifikujte predany DataFrame, ale vytvorte si novy, upravte ho a vratte jej.
-    """
+    # Copies the specified dataframe
+    new_df = df.copy()
 
-    ### Implementujte sve reseni.
+    # Standardizes the 'Fare' column
+    new_df['Fare_scaled'] = new_df['Fare'].apply(
+        lambda x: (x-new_df['Fare'].mean()) / new_df['Fare'].std()
+    )
 
+    # Makes logarithms of values in the 'Age' column
+    new_df['Age_log'] = new_df['Age'].apply(
+        lambda x: np.log(x)
+    )
+
+    # Makes integers of values in the 'Sex' column
+    new_df['Sex'] = new_df['Sex'].replace({'female': '1', 'male': '0'}).astype(int)
+
+    return new_df
+
+def calculate_probability(df, row):
+
+    # Counts probabilities of survival for every age and both sexes
+    df_tmp = df.loc[
+        (df['Age'] > row['AgeInterval'].left) &
+        (df['Age'] <= row['AgeInterval'].right) &
+        (df['Sex'] == row['Sex'])
+    ]
+
+    # The denominator is zero
+    if (not df_tmp['Survived'].count()):
+        return 0
+
+    return df_tmp['Survived'].sum() / df_tmp['Survived'].count()
 
 def determine_survival(df: pd.DataFrame, n_interval: int, age: float, sex: str) -> float:
-    """
-    Na zaklade statistickeho zpracovani dat zjistete pravdepodobnost preziti Vami zadaneho cloveka (zadava se vek a pohlavi pomoci parametru "age" a "sex")
 
-    Vsechny chybejici hodnoty ve vstupnim DataFramu ve sloupci "Age" nahradte prumerem.
-    Rozdelte "Age" do n intervalu zadanych parametrem "n_interval". Napr. pokud bude Age mit hodnoty [2, 13, 18, 25] a mame jej rozdelit do 2 intervalu,
-    tak bude vysledek:
+    # Replaces all missing values in the 'Age' column by the mean
+    df['Age'] = df['Age'].fillna(df['Age'].mean())
 
-    0    (1.977, 13.5]
-    1    (1.977, 13.5]
-    2     (13.5, 25.0]
-    3     (13.5, 25.0]
+    # Creates a new dictionary with all information about ages divided into intervals
+    intervals = {'AgeInterval': pd.cut(df['Age'], n_interval)}
 
-    Pridejte k rozdeleni jeste pohlavi. Tj. pro kazdou kombinaci pohlavi a intervalu veku zjistete prumernou
-    pravdepodobnost preziti ze sloupce "Survival" a tu i vratte.
+    # Creates a new dataframe with the help of the dictionary and drops duplicates
+    df_both = pd.DataFrame(intervals).drop_duplicates()
 
-    Vysledny DataFrame:
+    # Creates dataframes for both sexes and sorts them
+    df_male = df_both.copy().sort_values(by='AgeInterval')
+    df_female = df_both.copy().sort_values(by='AgeInterval')
 
-    "AgeInterval"   |    "Sex"    |   "Survival Probability"
-       (0-10)       | "male"      |            0.21
-       (0-10)       | "female"    |            0.28
-       (10-20)      | "male"      |            0.10
-       (10-20)      | "female"    |            0.15
-       atd...
+    # Adds a new 'Sex' column for both sexes
+    df_male['Sex'] = 'male'
+    df_female['Sex'] = 'female'
 
-    Takze vystup funkce determine_survival(df, n_interval=20, age = 5, sex = "male") bude 0.21. Tato hodnota bude navratovou hodnotou funkce.
+    # Counts probabilities of survival for every age and both sexes
+    df_male['Survival Probability'] = df_male.apply(
+        lambda row: calculate_probability(df, row), axis=1
+    )
+    df_female['Survival Probability'] = df_female.apply(
+        lambda row: calculate_probability(df, row), axis=1
+    )
 
-    """
+    # Joins both dataframes and merges them
+    df_both = pd.concat([df_male, df_female]).sort_index(kind='merge')
 
-    ### Implementujte sve reseni.
+    # Resets indexes
+    df_both = df_both.reset_index(drop=True)
+
+    # Gets the probability of survival for the specified age and sex
+    probability = df_both.loc[
+        (age > df_both.apply(lambda row: row['AgeInterval'].left, axis=1)) &
+        (age <= df_both.apply(lambda row: row['AgeInterval'].right, axis=1)) &
+        (sex == df_both['Sex']),
+        'Survival Probability'
+    ]
+
+    if probability.empty:
+        return 0
+    else:
+        return probability.values[0]
