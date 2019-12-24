@@ -24,6 +24,9 @@ def apply_filter(image: np.array, kernel: np.array) -> np.array:
     else: # RGB
         channels = image.shape[2]
         conv_img = np.zeros((img_h, img_w, channels), dtype = np.uint8)
+
+    # Declares neighbours
+    neighbours = np.zeros((kernel.shape[0], kernel.shape[1]), dtype = np.uint8)
     
     # Works with every pixel
     for y in range(img_h):
@@ -34,41 +37,51 @@ def apply_filter(image: np.array, kernel: np.array) -> np.array:
                 
                 # Sets the height of a cut by the kernel
                 y_from = y - ker_half_size
-                y_to = y + ker_half_size + 1
+                y_to = y + ker_half_size
                 
                 # Sets the width of the cut by the kernel
                 x_from = x - ker_half_size
-                x_to = x + ker_half_size + 1     
+                x_to = x + ker_half_size
                 
-                # Initializes neighbours
-                neighbours = np.zeros((kernel.shape[0], kernel.shape[1]), dtype = np.uint8)
-                nei_y = nei_x = 0
+                # Detects borders and sets paddings
+                top_padd = bottom_padd = left_padd = right_padd = 0
                 
-                # Sets the neighbours
-                for img_y in range(y_from, y_to):
-                    for img_x in range(x_from, x_to):
+                if (y_from < 0):
+                    top_padd = -y_from
+                    y_from = 0
+                
+                if (y_to > img_h - 1):
+                    bottom_padd = y_to - (img_h - 1)
+                    y_to = img_h
                     
-                        # Saves the neighbours or makes them as nulls if they are beyond
-                        if img_y < 0 or img_x < 0 or img_y >= img_h or img_x >= img_w:
-                            neighbours[nei_y][nei_x] = 0
-                        else:
-                            if image.ndim == 2: # GRAY
-                                neighbours[nei_y][nei_x] = image[img_y][img_x]
-                            else: # RGB
-                                neighbours[nei_y][nei_x] = image[img_y][img_x][ch]
-                        
-                        nei_x += 1
-                            
-                    nei_y += 1
-                    nei_x = 0
-                           
+                if (x_from < 0):
+                    left_padd = -x_from
+                    x_from = 0
+                
+                if (x_to > img_w - 1):
+                    right_padd = x_to - (img_w - 1)
+                    x_to = img_w
+
+                # Gets neighbours
+                if image.ndim == 2: # GRAY
+                    neighbours = image[y_from:y_to + 1, x_from:x_to + 1]
+                else: # RGB
+                    neighbours = image[y_from:y_to + 1, x_from:x_to + 1, ch]
+                
+                # Fills zeros if needed
+                neighbours = np.pad(
+                    neighbours,
+                    ((top_padd, bottom_padd), (left_padd, right_padd)),
+                    'constant'
+                )
+                
                 # Makes a sum of the neighbours
-                sum = np.sum(neighbours * kernel)
+                sum_of_neighbours = np.sum(neighbours * kernel)
                 
                 # Saves a new value
                 if image.ndim == 2: # GRAY
-                    conv_img[y][x] = int(min(max(sum, 0), 255))
+                    conv_img[y][x] = int(min(max(sum_of_neighbours, 0), 255))
                 else: # RGB
-                    conv_img[y][x][ch] = int(min(max(sum, 0), 255))
+                    conv_img[y][x][ch] = int(min(max(sum_of_neighbours, 0), 255))
 
     return conv_img
